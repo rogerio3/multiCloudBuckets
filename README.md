@@ -173,9 +173,8 @@ Users live in an in-memory store (MVP) with passwords hashed using **scrypt**
    redirects automatically. Dark mode: toggled from the navbar, persisted, and
    defaults to your OS preference. *(Screenshot: `docs/screenshots/06-dark-mode.png`)*
 
-> 📸 **Note for reviewers:** screenshot placeholders live under
-> `docs/screenshots/` — capture them while walking through the steps above
-> (the app runs entirely in mock mode, so the journey takes ~2 minutes).
+> 📸 All screenshots above were captured from the app running locally in mock
+> mode and live under `docs/screenshots/`.
 
 ---
 
