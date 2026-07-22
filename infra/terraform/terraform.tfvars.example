@@ -1,0 +1,9 @@
+bucket_name = "cloud-log-access-test-CHANGE-ME"
+aws_region  = "us-east-1"
+environment = "dev"
+
+# Set to true for throwaway test buckets you may want to destroy with objects in them.
+force_destroy = true
+
+# Creates a read-only IAM user and outputs credentials for backend/.env
+create_reader_user = true

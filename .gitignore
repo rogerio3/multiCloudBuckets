@@ -1,0 +1,67 @@
+# Agents and Skills
+.agents/
+agents/
+skills/
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+**/.next/
+**/out/
+**/dist/
+**/build/
+.next/
+out/
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!backend/.env.test.example
+
+# Uploads and generated data
+uploads/
+**/uploads/
+neo4j/import/*
+!neo4j/import/.gitkeep
+postgres/init/*.sql
+
+# Database volumes/data
+postgres_data/
+neo4j_data/
+
+# Test artifacts
+coverage/
+tests/e2e/report/
+playwright-report/
+test-results/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Misc
+.git/
+memory-bank/
+.clinerules
+
+# Mock storage data (generated at runtime)
+mock-data/
+**/mock-data/

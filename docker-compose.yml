@@ -1,0 +1,44 @@
+# Local orchestration for the Cloud Log Access Service.
+# Defaults run the backend with the mock storage provider — no cloud
+# credentials required. Copy backend/.env.example to tune real providers.
+
+services:
+  backend:
+    build: ./backend
+    image: cloud-log-access-backend
+    ports:
+      - "3001:3001"
+    environment:
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-mock}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3001}
+      # Real providers — uncomment and fill in as needed:
+      # AWS_REGION: ${AWS_REGION:-us-east-1}
+      # AWS_BUCKET: ${AWS_BUCKET:-}
+      # AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      # AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # GCP_BUCKET: ${GCP_BUCKET:-}
+      # GCP_PROJECT_ID: ${GCP_PROJECT_ID:-}
+      # GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      # AZURE_CONTAINER: ${AZURE_CONTAINER:-}
+      # AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Browser-facing API URL (calls come from the user's browser, not the container)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    image: cloud-log-access-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
