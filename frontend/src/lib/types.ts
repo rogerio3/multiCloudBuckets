@@ -32,3 +32,18 @@ export interface PresignResponse {
   expiresAt: string;
   key: string;
 }
+
+export interface CreateUserRequest {
+  username: string;
+  name: string;
+  password: string;
+  role: Role;
+}
+
+export interface CreateUserResponse {
+  user: User;
+}
+
+export interface ListUsersResponse {
+  users: User[];
+}

@@ -1,11 +1,12 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
 import { signToken } from '../auth/jwt';
 import { verifyPassword } from '../auth/passwords';
-import { UserStore } from '../auth/users';
+import type { IUserStore } from '../auth/users';
+import { toPublic } from '../auth/users';
 import { AuthError } from '../errors';
 
 interface AuthRouteOptions {
-  userStore: UserStore;
+  userStore: IUserStore;
   jwtSecret: string;
   jwtExpiresIn: number;
   authenticate: preHandlerHookHandler;
@@ -29,7 +30,7 @@ export function registerAuthRoutes(app: FastifyInstance, opts: AuthRouteOptions)
     },
     async (request, reply) => {
       const { username, password } = request.body as { username: string; password: string };
-      const user = opts.userStore.findByUsername(username);
+      const user = await opts.userStore.findByUsername(username);
       if (!user || !verifyPassword(password, user.passwordHash)) {
         throw new AuthError('Invalid credentials', 401, 'InvalidCredentials');
       }
@@ -38,7 +39,7 @@ export function registerAuthRoutes(app: FastifyInstance, opts: AuthRouteOptions)
         opts.jwtSecret,
         opts.jwtExpiresIn,
       );
-      return reply.send({ token, user: UserStore.toPublic(user), expiresAt });
+      return reply.send({ token, user: toPublic(user), expiresAt });
     },
   );
 

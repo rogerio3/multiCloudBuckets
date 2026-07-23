@@ -1,12 +1,19 @@
 import { buildApp } from './app';
 import { loadConfig } from './config';
+import { pool } from './db/client';
+import { seedDefaultUsers } from './auth/seed';
 
 async function main(): Promise<void> {
   const config = loadConfig();
   const app = await buildApp();
 
+  // Connect to Postgres and seed default users
+  await pool.connect();
+  await seedDefaultUsers(config);
+
   const shutdown = (signal: string): void => {
     app.log.info({ signal }, 'shutting down');
+    void pool.end();
     void app.close().then(() => process.exit(0));
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
@@ -20,6 +27,7 @@ async function main(): Promise<void> {
     );
   } catch (err) {
     app.log.error(err);
+    await pool.end();
     process.exit(1);
   }
 }

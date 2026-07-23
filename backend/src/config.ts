@@ -12,6 +12,9 @@ export interface AppConfig {
   jwtSecret: string;
   /** Token lifetime in seconds. */
   jwtExpiresIn: number;
+  databaseUrl: string;
+  adminPassword: string;
+  viewerPassword: string;
   storageProvider: StorageProviderName;
   presignDefaultExpiresIn: number;
   presignMaxExpiresIn: number;
@@ -62,6 +65,9 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     corsOrigin: corsOriginRaw === '*' ? '*' : corsOriginRaw.split(',').map((o) => o.trim()),
     jwtSecret: env.JWT_SECRET ?? 'dev-secret-change-me',
     jwtExpiresIn: int(env.JWT_EXPIRES_IN, 8 * 60 * 60),
+    databaseUrl: env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/logaccess',
+    adminPassword: env.ADMIN_PASSWORD ?? 'admin123',
+    viewerPassword: env.VIEWER_PASSWORD ?? 'viewer123',
     storageProvider: provider,
     presignDefaultExpiresIn: int(env.PRESIGN_DEFAULT_EXPIRES_IN, 3600),
     presignMaxExpiresIn: int(env.PRESIGN_MAX_EXPIRES_IN, 86400),

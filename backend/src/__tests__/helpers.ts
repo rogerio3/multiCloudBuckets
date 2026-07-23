@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app';
+import { FakeUserStore } from '../auth/fake-user-store';
 
 export interface TestContext {
   app: FastifyInstance;
@@ -13,12 +14,16 @@ export interface TestContext {
 /** Spins up an app instance backed by a temp mock-storage dir (no sockets, uses inject). */
 export async function createTestApp(): Promise<TestContext> {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cla-test-'));
-  const app = await buildApp({
-    storageProvider: 'mock',
-    jwtSecret: 'test-secret',
-    mock: { dataDir },
-    publicUrl: 'http://localhost:3001',
-  });
+  const userStore = new FakeUserStore();
+  const app = await buildApp(
+    {
+      storageProvider: 'mock',
+      jwtSecret: 'test-secret',
+      mock: { dataDir },
+      publicUrl: 'http://localhost:3001',
+    },
+    userStore,
+  );
   // Silence logs during tests.
   app.log.level = 'silent';
   return {

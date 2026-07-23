@@ -1,4 +1,4 @@
-import type { ListLogsResponse, LoginResponse, PresignResponse, User } from './types';
+import type { CreateUserRequest, CreateUserResponse, ListLogsResponse, ListUsersResponse, LoginResponse, PresignResponse, User } from './types';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -120,6 +120,14 @@ export const api = {
     request<PresignResponse>(`/api/logs/${encodeURIComponent(key)}/presign`, {
       method: 'POST',
       body: { expiresIn },
+    }),
+
+  listUsers: () => request<ListUsersResponse>('/api/admin/users'),
+
+  createUser: (data: CreateUserRequest) =>
+    request<CreateUserResponse>('/api/admin/users', {
+      method: 'POST',
+      body: data,
     }),
 
   /** Fetches a file with the Authorization header and triggers a browser download. */

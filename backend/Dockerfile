@@ -16,7 +16,8 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN addgroup -S app && adduser -S app -G app
+RUN apk add --no-cache curl postgresql-client \
+  && addgroup -S app && adduser -S app -G app
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
