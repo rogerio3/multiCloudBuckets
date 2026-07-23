@@ -2,7 +2,7 @@ import type { PublicUser, Role, User } from '../types';
 
 /**
  * Async user repository interface.
- * Swap implementations: PrismaUserStore (production) or FakeUserStore (tests).
+ * Swap implementations: PostgresUserStore (production) or FakeUserStore (tests).
  */
 export interface IUserStore {
   findByUsername(username: string): Promise<User | undefined>;

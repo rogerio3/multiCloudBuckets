@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { Role, User, PublicUser } from '../types';
 import { pool } from '../db/client';
 import { hashPassword } from './passwords';
@@ -15,7 +16,7 @@ interface UserRow {
 /**
  * Production user repository backed by Postgres via raw SQL.
  */
-export class PrismaUserStore implements IUserStore {
+export class PostgresUserStore implements IUserStore {
   private fromRow(row: UserRow): User {
     return {
       id: row.id,
@@ -44,8 +45,8 @@ export class PrismaUserStore implements IUserStore {
 
   async create(username: string, name: string, password: string, role: Role): Promise<PublicUser> {
     const { rows } = await pool.query<UserRow>(
-      'INSERT INTO "User" (username, name, role, "passwordHash") VALUES ($1, $2, $3, $4) RETURNING id, username, name, role, "passwordHash" AS password_hash',
-      [username, name, role.toUpperCase() as 'ADMIN' | 'VIEWER', hashPassword(password)]
+      'INSERT INTO "User" (id, username, name, role, "passwordHash") VALUES ($1, $2, $3, $4, $5) RETURNING id, username, name, role, "passwordHash" AS password_hash',
+      [randomUUID(), username, name, role.toUpperCase() as 'ADMIN' | 'VIEWER', hashPassword(password)]
     );
     return toPublic(this.fromRow(rows[0]));
   }

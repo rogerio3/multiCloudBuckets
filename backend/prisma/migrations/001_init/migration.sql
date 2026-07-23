@@ -3,7 +3,7 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'VIEWER');
 
 -- CreateTable
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "username" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "role" "Role" NOT NULL,

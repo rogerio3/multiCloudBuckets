@@ -4,7 +4,7 @@ import { toPublic, type IUserStore } from './users';
 
 /**
  * In-memory fake user store for tests.
- * Implements the same IUserStore interface as PrismaUserStore.
+ * Implements the same IUserStore interface as PostgresUserStore.
  */
 export class FakeUserStore implements IUserStore {
   private readonly users = new Map<string, User>();

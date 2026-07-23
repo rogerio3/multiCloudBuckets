@@ -2,7 +2,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
-import { PrismaUserStore } from './auth/prisma-user-store';
+import { PostgresUserStore } from './auth/postgres-user-store';
 import { type IUserStore } from './auth/users';
 import { loadConfig, type AppConfig } from './config';
 import { AppError } from './errors';
@@ -35,7 +35,7 @@ export async function buildApp(
   await app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
 
   const storage = await createStorageProvider(config);
-  const store = userStore ?? new PrismaUserStore();
+  const store = userStore ?? new PostgresUserStore();
   const authenticate = makeAuthenticate(config.jwtSecret);
   const requireAdmin = requireRole('admin');
 
