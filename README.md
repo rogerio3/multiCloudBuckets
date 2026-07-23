@@ -497,7 +497,10 @@ log-app/
 ├── .github/workflows/ci.yml      # lint → test → build → docker images
 ├── infra/terraform/              # bonus: hardened S3 test bucket + reader IAM
 ├── docs/screenshots/             # user-journey screenshots
-└── spec/changes/…                # OpenSpec change (proposal, tasks, spec deltas)
+└── spec/
+    ├── specs/                    # living specs (merged requirements)
+    ├── changes/                  # open change proposals (empty)
+    └── archive/2026-07-22-cloud-log-access-service/  # this change (archived)
 ```
 
 ---
