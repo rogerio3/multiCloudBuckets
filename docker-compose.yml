@@ -13,11 +13,14 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3001}
-      # Real providers — uncomment and fill in as needed:
-      # AWS_REGION: ${AWS_REGION:-us-east-1}
-      # AWS_BUCKET: ${AWS_BUCKET:-}
-      # AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      # AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # AWS S3 (real account or the localstack profile below)
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_BUCKET: ${AWS_BUCKET:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # Use http://localstack:4566 with the aws-emulated profile (compose network),
+      # or http://localhost:4566 when the backend runs directly on the host.
+      AWS_ENDPOINT: ${AWS_ENDPOINT:-}
       # GCP_BUCKET: ${GCP_BUCKET:-}
       # GCP_PROJECT_ID: ${GCP_PROJECT_ID:-}
       # GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
@@ -42,3 +45,20 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+  # Optional: local AWS emulation so the real S3 provider code path
+  # (ListObjectsV2, GetObject, pre-signed URLs) can be exercised without a
+  # cloud account. Enable with: docker compose --profile aws-emulated up -d
+  localstack:
+    image: localstack/localstack:3.8
+    profiles: ["aws-emulated"]
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s

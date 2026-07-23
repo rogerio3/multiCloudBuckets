@@ -29,6 +29,7 @@ locally with **zero cloud credentials**.
     - [`GET /api/auth/me` — current session (auth required)](#get-apiauthme--current-session-auth-required)
     - [`GET /api/admin/users` — admin-only (demonstrates RBAC)](#get-apiadminusers--admin-only-demonstrates-rbac)
   - [Switching Cloud Providers](#switching-cloud-providers)
+    - [Testing the real S3 code path locally (LocalStack)](#testing-the-real-s3-code-path-locally-localstack)
   - [Testing \& Quality](#testing--quality)
   - [CI Workflow (Bonus)](#ci-workflow-bonus)
   - [Terraform IaC (Bonus)](#terraform-iac-bonus)
@@ -332,6 +333,44 @@ terraform init && terraform apply
 # outputs give you AWS_BUCKET + read-only credentials for backend/.env
 ```
 
+### Testing the real S3 code path locally (LocalStack)
+
+You can exercise the **actual AWS SDK code path** — `ListObjectsV2`, `GetObject`,
+and genuine S3 pre-signed URLs — without a cloud account using
+[LocalStack](https://localstack.cloud):
+
+```bash
+# 1. Start the emulator (compose profile)
+docker compose --profile aws-emulated up -d localstack
+
+# 2. Seed a test bucket with the sample logs (uses the real S3 SDK)
+cd backend
+AWS_BUCKET=cla-logs-test AWS_ENDPOINT=http://localhost:4566 npx tsx scripts/seed-s3.ts
+# → seeded 27 log files into cla-logs-test
+
+# 3. Run the backend against the emulated S3
+STORAGE_PROVIDER=aws \
+AWS_BUCKET=cla-logs-test \
+AWS_ENDPOINT=http://localhost:4566 \
+AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test \
+npm run dev
+```
+
+Verified end-to-end against this setup: login → `GET /api/logs` (real S3 etags)
+→ prefix filter on nested keys (`archive/…`) → streamed `GetObject` download →
+404 mapping for missing keys → **pre-signed URL that downloads the object with
+no JWT at all**:
+
+```text
+7) GET via real pre-signed URL WITHOUT JWT:
+   status=200 bytes=6096
+2026-07-19T00:00:00.000Z INFO  [pid=1000] request handled method=GET path=/api/orders …
+```
+
+The same flow works against a real AWS account by pointing `AWS_BUCKET` at a
+bucket you own and omitting `AWS_ENDPOINT` (credentials come from the standard
+AWS chain — e.g. the IAM user produced by the Terraform module above).
+
 ---
 
 ## Testing & Quality
@@ -443,6 +482,7 @@ log-app/
 │   │   ├── routes/               # auth, logs, admin
 │   │   ├── storage/              # mock, S3, GCS, Azure providers + factory
 │   │   └── __tests__/            # 23 Jest tests (auth + logs)
+│   ├── scripts/seed-s3.ts        # seeds a bucket (real AWS or LocalStack)
 │   ├── Dockerfile                # multi-stage, non-root, healthcheck
 │   └── .env.example
 ├── frontend/                     # Next.js 15 SPA
