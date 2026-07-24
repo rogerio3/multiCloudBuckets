@@ -5,7 +5,7 @@ access to log files stored in cloud object storage — **AWS S3**, **GCP Cloud S
 and **Azure Blob Storage** — plus a built-in **mock provider** so you can run everything
 locally with **zero cloud credentials**.
 
-- **Backend** — Node.js 22 · TypeScript · Fastify 5 · JWT auth · role-based access control
+- **Backend** — Node.js 22 · TypeScript · Fastify 5 · JWT auth · role-based access control · PostgreSQL (user store)
 - **Frontend** — Next.js 15 (App Router) · React 19 · Tailwind CSS · React Context global state
 - **DevOps** — Docker + Docker Compose · GitHub Actions CI · Terraform (bonus IaC)
 
@@ -96,9 +96,13 @@ git checkout exercise/cloud-log-access-service
 docker compose up --build
 ```
 
-Then open **http://localhost:3000** and sign in (see credentials below).
-The backend runs on **http://localhost:3001** with the **mock provider** and
-auto-seeded sample log files — no cloud account needed.
+This starts three services:
+- **PostgreSQL 16** — user database (auto-seeded with admin/viewer accounts)
+- **Backend** on `http://localhost:3001` — Fastify BFF with the **mock storage provider**
+- **Frontend** on `http://localhost:3000` — Next.js SPA
+
+Open **http://localhost:3000** and sign in (see credentials below).
+No cloud account needed — the mock provider auto-seeds sample log files.
 
 Stop everything with `docker compose down`.
 
@@ -106,18 +110,31 @@ Stop everything with `docker compose down`.
 
 ## Local Development (without Docker)
 
-> Prereqs: Node.js ≥ 20 (developed on Node 23), npm 10.
+> Prereqs: Node.js ≥ 20 (developed on Node 23), npm 10, PostgreSQL 16 running locally.
 
-**Terminal 1 — backend:**
+**Terminal 1 — database:**
+
+The backend requires a PostgreSQL database for user storage. Make sure PostgreSQL is
+running and create a database (or point `DATABASE_URL` at your existing one):
+
+```bash
+createdb logaccess
+```
+
+The schema is auto-created on first boot via `init-db.sql` (see `docker-compose.yml`
+for the exact SQL run on the Docker service).
+
+**Terminal 2 — backend:**
 
 ```bash
 cd backend
 cp .env.example .env          # defaults: STORAGE_PROVIDER=mock, PORT=3001
+# Edit DATABASE_URL in .env if your Postgres isn't at localhost:5432
 npm install
 npm run dev                   # tsx watch → http://localhost:3001
 ```
 
-**Terminal 2 — frontend:**
+**Terminal 3 — frontend:**
 
 ```bash
 cd frontend
@@ -126,7 +143,8 @@ npm install
 npm run dev                   # → http://localhost:3000
 ```
 
-On first start the mock provider seeds ~27 realistic log files
+On first start the backend seeds the `admin` and `viewer` users into the PostgreSQL
+`User` table, and the mock provider seeds ~27 realistic log files
 (app / auth / system / error / nginx-access for the last 5 days, plus an
 `archive/` prefix) into `backend/mock-data/` (git-ignored).
 
@@ -139,8 +157,11 @@ On first start the mock provider seeds ~27 realistic log files
 | `admin`  | `admin123`  | `admin` | Everything, incl. `GET /api/admin/users`           |
 | `viewer` | `viewer123` | `viewer`| Log list / download / presign (403 on admin routes)|
 
-Users live in an in-memory store (MVP) with passwords hashed using **scrypt**
-(Node's built-in KDF) — swap `UserStore` for a database later.
+Users are stored in **PostgreSQL** (`User` table) with passwords hashed using
+**scrypt** (Node's built-in KDF). The `admin` and `viewer` accounts are seeded
+on first boot via `init-db.sql`. New users can be created through the admin
+interface (`/admin/users`) or via the `POST /api/admin/users` endpoint, and
+each user record includes a `createdAt` timestamp.
 
 ---
 
@@ -463,6 +484,12 @@ Usage: see [Switching Cloud Providers](#switching-cloud-providers).
 12. **`NEXT_PUBLIC_API_URL` as a build arg** — Next inlines public env vars at
     build time; Compose passes it explicitly so the browser always reaches the
     backend on `localhost:3001`.
+13. **PostgreSQL for user storage** — the `User` table is managed via raw SQL
+    queries (no ORM overhead) against a PostgreSQL 16 database. The `createdAt`
+    column is populated automatically by the database default, and the `PostgresUserStore`
+    exposes it through the API — including the `GET /api/admin/users` list and
+    `POST /api/admin/users` create responses. The `FakeUserStore` used in tests
+    mirrors this behavior with in-memory data.
 
 ---
 
@@ -510,6 +537,7 @@ log-app/
 - [ ] Change `JWT_SECRET` and the seeded demo passwords
 - [ ] Restrict `CORS_ORIGIN` to your real frontend origin
 - [ ] Terminate TLS in front of both services
-- [ ] Replace the in-memory `UserStore` with a database + OIDC
+- [ ] Secure the `DATABASE_URL` connection string (use a dedicated database user with least privilege)
+- [ ] Add database connection pooling, retry logic, and migration management for production
 - [ ] Scope cloud credentials to least privilege (read-only on the log bucket)
 - [ ] Lower `PRESIGN_MAX_EXPIRES_IN` to your policy maximum
