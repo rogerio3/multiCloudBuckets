@@ -12,5 +12,5 @@ export interface IUserStore {
 
 /** Converts a full User to a PublicUser (omits passwordHash). */
 export function toPublic(user: User): PublicUser {
-  return { id: user.id, username: user.username, name: user.name, role: user.role };
+  return { id: user.id, username: user.username, name: user.name, role: user.role, createdAt: user.createdAt };
 }

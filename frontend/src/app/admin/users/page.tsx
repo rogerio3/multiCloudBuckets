@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { formatDateTime } from '@/lib/format';
 import type { User } from '@/lib/types';
 
 export default function AdminUsersPage() {
@@ -237,8 +238,7 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-3 text-slate-500 dark:text-slate-400">
-                      {/* CreatedAt is not exposed by the API - show "—" */}
-                      &mdash;
+                      {u.createdAt ? formatDateTime(u.createdAt) : '—'}
                     </td>
                   </tr>
                 ))}

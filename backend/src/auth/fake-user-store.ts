@@ -15,8 +15,8 @@ export class FakeUserStore implements IUserStore {
 
   private seed(): void {
     const defaults: Array<Omit<User, 'passwordHash'> & { password: string }> = [
-      { id: 'u-1', username: 'admin', name: 'Admin User', role: 'admin', password: 'admin123' },
-      { id: 'u-2', username: 'viewer', name: 'Viewer User', role: 'viewer', password: 'viewer123' },
+      { id: 'u-1', username: 'admin', name: 'Admin User', role: 'admin', password: 'admin123', createdAt: '2026-01-01T00:00:00.000Z' },
+      { id: 'u-2', username: 'viewer', name: 'Viewer User', role: 'viewer', password: 'viewer123', createdAt: '2026-01-02T00:00:00.000Z' },
     ];
     for (const { password, ...user } of defaults) {
       this.users.set(user.username, { ...user, passwordHash: hashPassword(password) });
@@ -36,7 +36,7 @@ export class FakeUserStore implements IUserStore {
       throw new Error('Username already exists');
     }
     const id = `u-${this.users.size + 1}`;
-    const user: User = { id, username, name, role, passwordHash: hashPassword(password) };
+    const user: User = { id, username, name, role, passwordHash: hashPassword(password), createdAt: new Date().toISOString() };
     this.users.set(username, user);
     return toPublic(user);
   }

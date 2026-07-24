@@ -7,6 +7,7 @@ export interface User {
   role: Role;
   /** scrypt hash in the format "salt:hash" (hex) */
   passwordHash: string;
+  createdAt: string; // ISO 8601
 }
 
 export type PublicUser = Omit<User, 'passwordHash'>;

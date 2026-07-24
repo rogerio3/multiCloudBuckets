@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { api, ApiError } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
 import type { PresignResponse } from '@/lib/types';
@@ -23,29 +23,23 @@ export default function PresignModal({ fileKey, onClose, onCopied }: Props) {
   const [expiresIn, setExpiresIn] = useState(3600);
   const [data, setData] = useState<PresignResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [generatedExpiresIn, setGeneratedExpiresIn] = useState<number | null>(null);
 
-  const generate = useCallback(
-    async (seconds: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        setData(await api.presign(fileKey, seconds));
-      } catch (err) {
-        setData(null);
-        setError(err instanceof ApiError ? err.message : 'Failed to generate link');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [fileKey],
-  );
-
-  useEffect(() => {
-    void generate(expiresIn);
-    // Regenerate only when the modal opens or the user changes the expiry.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expiresIn]);
+  const generate = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await api.presign(fileKey, expiresIn);
+      setData(result);
+      setGeneratedExpiresIn(expiresIn);
+    } catch (err) {
+      setData(null);
+      setError(err instanceof ApiError ? err.message : 'Failed to generate link');
+    } finally {
+      setLoading(false);
+    }
+  }, [fileKey, expiresIn]);
 
   const copy = async () => {
     if (!data) return;
@@ -56,6 +50,8 @@ export default function PresignModal({ fileKey, onClose, onCopied }: Props) {
       // Clipboard API unavailable (non-secure context) — select text instead.
     }
   };
+
+  const canRegenerate = data !== null && generatedExpiresIn !== expiresIn;
 
   return (
     <div
@@ -128,14 +124,28 @@ export default function PresignModal({ fileKey, onClose, onCopied }: Props) {
             <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
               Expires at {formatDateTime(data.expiresAt)}
             </p>
-            <div className="flex justify-end gap-2">
+          </>
+        )}
+
+        {!loading && (
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              Close
+            </button>
+            {data && canRegenerate && (
               <button
                 type="button"
-                onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                onClick={() => void generate()}
+                className="rounded-lg border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400"
               >
-                Close
+                Regenerate
               </button>
+            )}
+            {data && (
               <button
                 type="button"
                 onClick={() => void copy()}
@@ -143,8 +153,17 @@ export default function PresignModal({ fileKey, onClose, onCopied }: Props) {
               >
                 Copy to clipboard
               </button>
-            </div>
-          </>
+            )}
+            {!data && (
+              <button
+                type="button"
+                onClick={() => void generate()}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+              >
+                Generate
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

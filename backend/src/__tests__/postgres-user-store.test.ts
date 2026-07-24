@@ -16,7 +16,7 @@ describe('PostgresUserStore', () => {
   });
 
   describe('create()', () => {
-    test('generates a UUID for the id column (fixes 500 error)', async () => {
+    test('generates a UUID for the id column and returns createdAt', async () => {
       mockQuery.mockResolvedValue({
         rows: [
           {
@@ -25,6 +25,7 @@ describe('PostgresUserStore', () => {
             name: 'New User',
             role: 'VIEWER',
             password_hash: 'salt:hash',
+            created_at: '2026-07-23T20:00:00.000Z',
           },
         ],
         rowCount: 1,
@@ -46,12 +47,13 @@ describe('PostgresUserStore', () => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
 
-      // Verify the returned user has the correct fields
+      // Verify the returned user has the correct fields including createdAt
       expect(user).toMatchObject({
         id: '550e8400-e29b-41d4-a716-446655440000',
         username: 'newuser',
         name: 'New User',
         role: 'viewer',
+        createdAt: '2026-07-23T20:00:00.000Z',
       });
       expect(user).not.toHaveProperty('passwordHash');
     });
@@ -65,6 +67,7 @@ describe('PostgresUserStore', () => {
             name: 'Admin Two',
             role: 'ADMIN',
             password_hash: 'salt:hash',
+            created_at: '2026-07-23T20:00:00.000Z',
           },
         ],
         rowCount: 1,
@@ -87,6 +90,7 @@ describe('PostgresUserStore', () => {
             name: 'Hash User',
             role: 'VIEWER',
             password_hash: 'salt:hash',
+            created_at: '2026-07-23T20:00:00.000Z',
           },
         ],
         rowCount: 1,

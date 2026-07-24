@@ -129,14 +129,43 @@ AND trigger a file download in the browser
 AND show a success toast notification
 
 #### Scenario: Generate Presigned URL (Bonus)
-GIVEN the user clicks "Get Link" on a file row
-WHEN the action is triggered
-THEN a modal SHALL open with:
-- The generated temporary URL (read-only input)
-- Expiry time display
-- "Copy to Clipboard" button
-- "Close" button
-AND a toast notification on successful copy
+GIVEN an authenticated user clicks "Get Link" on a file row
+WHEN the modal opens
+THEN the system SHALL display the file key
+AND the system SHALL display an expiration time selector (15 min / 1 hour / 2 hours)
+AND the system SHALL display a "Generate" button
+AND the system SHALL NOT call the presign backend endpoint
+AND the system SHALL NOT display a URL or "Copy to Clipboard" button
+
+#### Scenario: Generate Presigned URL
+GIVEN the user is on the presigned URL modal with an expiration time selected
+WHEN the user clicks "Generate"
+THEN the system SHALL call `POST /api/logs/:key/presign` with the selected `expiresIn`
+AND show a loading state on the "Generate" button
+AND on success, display the generated temporary URL in a read-only input field
+AND display the expiry timestamp
+AND display a "Copy to Clipboard" button
+AND display a "Close" button
+
+#### Scenario: Copy to Clipboard
+GIVEN the presigned URL has been generated and is displayed
+WHEN the user clicks "Copy to Clipboard"
+THEN the system SHALL copy the URL to the clipboard
+AND show a toast notification "Link copied to clipboard"
+
+#### Scenario: Regenerate with Different Expiration
+GIVEN the presigned URL has already been generated
+WHEN the user changes the expiration time in the selector
+THEN the system SHALL display a "Regenerate" button
+WHEN the user clicks "Regenerate"
+THEN the system SHALL call `POST /api/logs/:key/presign` with the new `expiresIn`
+AND update the displayed URL and expiry timestamp
+
+#### Scenario: Generation Error
+GIVEN the user clicks "Generate"
+WHEN the presign API call fails
+THEN the system SHALL display an error message in the modal
+AND the "Generate" button SHALL return to its normal state
 
 #### Scenario: Loading State
 GIVEN the page is fetching data

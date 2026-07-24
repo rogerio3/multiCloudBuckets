@@ -24,12 +24,13 @@ export class PostgresUserStore implements IUserStore {
       name: row.name,
       role: row.role.toLowerCase() as Role,
       passwordHash: row.password_hash,
+      createdAt: row.created_at ?? new Date().toISOString(),
     };
   }
 
   async findByUsername(username: string): Promise<User | undefined> {
     const { rows } = await pool.query<UserRow>(
-      'SELECT id, username, name, role, "passwordHash" AS password_hash FROM "User" WHERE username = $1',
+      'SELECT id, username, name, role, "passwordHash" AS password_hash, "createdAt" AS created_at FROM "User" WHERE username = $1',
       [username]
     );
     if (rows.length === 0) return undefined;
@@ -38,14 +39,14 @@ export class PostgresUserStore implements IUserStore {
 
   async list(): Promise<PublicUser[]> {
     const { rows } = await pool.query<UserRow>(
-      'SELECT id, username, name, role, "passwordHash" AS password_hash FROM "User" ORDER BY "createdAt" ASC'
+      'SELECT id, username, name, role, "passwordHash" AS password_hash, "createdAt" AS created_at FROM "User" ORDER BY "createdAt" ASC'
     );
     return rows.map((u: UserRow) => toPublic(this.fromRow(u)));
   }
 
   async create(username: string, name: string, password: string, role: Role): Promise<PublicUser> {
     const { rows } = await pool.query<UserRow>(
-      'INSERT INTO "User" (id, username, name, role, "passwordHash") VALUES ($1, $2, $3, $4, $5) RETURNING id, username, name, role, "passwordHash" AS password_hash',
+      'INSERT INTO "User" (id, username, name, role, "passwordHash") VALUES ($1, $2, $3, $4, $5) RETURNING id, username, name, role, "passwordHash" AS password_hash, "createdAt" AS created_at',
       [randomUUID(), username, name, role.toUpperCase() as 'ADMIN' | 'VIEWER', hashPassword(password)]
     );
     return toPublic(this.fromRow(rows[0]));
