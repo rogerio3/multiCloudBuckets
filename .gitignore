@@ -29,6 +29,8 @@ uploads/
 neo4j/import/*
 !neo4j/import/.gitkeep
 postgres/init/*.sql
+study/
+
 
 # Database volumes/data
 postgres_data/
@@ -65,3 +67,4 @@ memory-bank/
 # Mock storage data (generated at runtime)
 mock-data/
 **/mock-data/
+

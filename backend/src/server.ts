@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { buildApp } from './app';
 import { loadConfig } from './config';
 import { pool } from './db/client';

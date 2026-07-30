@@ -1,4 +1,4 @@
-bucket_name = "cloud-log-access-test-CHANGE-ME"
+bucket_name = "cloud-log-access-test"
 aws_region  = "us-east-1"
 environment = "dev"
 

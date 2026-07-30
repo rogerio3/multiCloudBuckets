@@ -97,11 +97,12 @@ docker compose up --build
 ```
 
 This starts three services:
+
 - **PostgreSQL 16** — user database (auto-seeded with admin/viewer accounts)
 - **Backend** on `http://localhost:3001` — Fastify BFF with the **mock storage provider**
 - **Frontend** on `http://localhost:3000` — Next.js SPA
 
-Open **http://localhost:3000** and sign in (see credentials below).
+Open **[http://localhost:3000](http://localhost:3000)** and sign in (see credentials below).
 No cloud account needed — the mock provider auto-seeds sample log files.
 
 Stop everything with `docker compose down`.

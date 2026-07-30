@@ -17,7 +17,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="bg-slate-50 text-slate-900 antialiased transition-colors dark:bg-slate-950 dark:text-slate-100">
+      {/* suppressHydrationWarning: browser extensions (e.g. ColorZilla's cz-shortcut-listen)
+          inject attributes into <body> before hydration, causing benign mismatches. */}
+      <body
+        className="bg-slate-50 text-slate-900 antialiased transition-colors dark:bg-slate-950 dark:text-slate-100"
+        suppressHydrationWarning
+      >
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
